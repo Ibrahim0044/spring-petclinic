@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   triggers {
-    cron('H/5 * * * 1')
+    cron('H/5 * * * 1')   
   }
 
   options { timestamps() }
@@ -14,19 +14,24 @@ pipeline {
 
     stage('Build + Test') {
       steps {
-        sh './gradlew clean test'
+        bat 'gradlew.bat clean test'
+      }
+      post {
+        always {
+          junit 'build/test-results/test/*.xml'
+        }
       }
     }
 
     stage('Jacoco Coverage Report') {
       steps {
-        sh './gradlew jacocoTestReport'
+        bat 'gradlew.bat jacocoTestReport'
       }
     }
 
     stage('Package Artifact') {
       steps {
-        sh './gradlew build -x test'
+        bat 'gradlew.bat build -x test'
       }
     }
   }
@@ -35,7 +40,6 @@ pipeline {
     success {
       archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
       archiveArtifacts artifacts: 'build/reports/jacoco/test/html/**', allowEmptyArchive: true
-      junit 'build/test-results/test/*.xml'
     }
   }
 }
